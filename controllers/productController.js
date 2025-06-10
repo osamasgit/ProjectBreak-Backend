@@ -1,34 +1,39 @@
 const { Product, validCategories, validSizes} = require('../models/Product.js')
-const { 
-    allProductsTemplate, 
-    productByIdTemplate, 
-    allProductsDashboard, 
-    productByIdDashboard,
-    newProductTemplate,
-    editProductTemplate } = require('../helpers/controllerTemplates.js');
+const baseHtml = require('../helpers/baseHtml.js')
+const getNavBar = require('../helpers/getNavBar')
+const getProductCard = require('../helpers/productCard.js')
+const getDetails = require('../helpers/getDetails.js')
+const newProductForm = require('../helpers/newProduct.js')
+const editProductForm = require('../helpers/editProduct.js')
 
 const categoryOptions = validCategories.map(category => `<option value="${category}">${category}</option>`).join('')
 const sizeOptions = validSizes.map(size => `<option value="${size}">${size}</option>`).join('')
 
+
 exports.showProducts = async (req, res) => {
     try {
-        const products = await Product.find().lean()
-        
-        const productsByCategory = {}
-        products.forEach(product => {
-            if (!productsByCategory[product.category]) {
-                productsByCategory[product.category] = []
-            }
-            productsByCategory[product.category].push(product)
+    const products = await Product.find().lean()
+    const productsByCategoryArray = validCategories.map(category => {
+        return products.filter(product => product.category === category)
+    })
+    let htmlByCategory = ''
+
+        validCategories.forEach((category, index) => {
+            const productsInCategory = productsByCategoryArray[index]
+
+            htmlByCategory += `<h2>${category}</h2><section id="${category}"><ul>`
+
+            productsInCategory.forEach(product => {
+            htmlByCategory += `<li>${getProductCard(req, product)}</li>`
         })
-        if(req.path === '/dashboard') {
-            let html = allProductsDashboard(productsByCategory)
-            res.send(html)
-        } else {
-            let html = allProductsTemplate(productsByCategory)
-            res.send(html)
-        }
-    } catch (error) {
+        htmlByCategory += `</ul></section>`
+        })
+    let body = getNavBar(validCategories, req) + htmlByCategory
+    let html = baseHtml(body)
+
+    res.send(html)
+
+  } catch (error) {
     console.error(error)
     res.status(500).send('Error al cargar productos')
   }
@@ -41,11 +46,10 @@ exports.showProductById = async (req, res) => {
         if (!product) {
             return res.status(404).send('Producto no encontrado')
         }
-        if(req.path === '/dashboard/' + productId) {
-            let html = productByIdDashboard(product)
-            res.send(html)
-        } else {
-            let html = productByIdTemplate(product)
+        else {
+            let body = getNavBar(validCategories, req) + getDetails(req, product)
+            let html = baseHtml(body)
+
             res.send(html)
         }
     } catch (error) {
@@ -55,13 +59,14 @@ exports.showProductById = async (req, res) => {
 }
 
 exports.showNewProduct = (req, res) => {
-    const html = newProductTemplate(categoryOptions, sizeOptions);
+    const html = newProductForm(categoryOptions, sizeOptions);
     res.send(html);
 }
 
 exports.createProduct = async (req, res) => {
     try {
-        const { name, description, image, category, size, price } = req.body
+        const { name, description, category, size, price } = req.body
+        const image = req.file ? req.file.path : '';
 
         const newProduct = new Product({
             name,
@@ -88,7 +93,7 @@ exports.showEditProduct = async (req, res) => {
         if (!product) {
             return res.status(404).send('Producto no encontrado')
         }
-        const html = editProductTemplate(product, categoryOptions, sizeOptions)
+        const html = editProductForm(product, categoryOptions, sizeOptions)
         res.send(html)
     } catch (error) {
         console.error(error)
