@@ -1,7 +1,6 @@
-
-
 function newProductForm(categories, sizes) {
     return `
+        <div class="form">
         <h1>Nuevo producto</h1>
 
         <form action="/dashboard" method="POST" enctype="multipart/form-data">
@@ -9,7 +8,7 @@ function newProductForm(categories, sizes) {
         <input type="text" id="name" name="name" required>
 
         <label for="description">Descripción</label>
-        <textarea id="description" name="description" required></textarea>
+        <textarea id="description" name="description" cols="40" rows="5" required></textarea>
 
         <label for="category">Categoría</label>
         <select id="category" name="category" required>
@@ -23,10 +22,13 @@ function newProductForm(categories, sizes) {
         <label for="image">Imagen</label>
         <input type="file" id="image" name="image" accept="image/*" required>
         
-        <button type="submit">Guardar</button>
+        <div class="btns">
+            <button type="submit">Guardar</button>
+            <a href="/dashboard">Volver al inicio</a>
+        </div>
         </form>
 
-        <p><a href="/dashboard">← Volver al inicio</a></p>`
+        </div>`
 }
 
 module.exports = newProductForm

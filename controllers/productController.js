@@ -13,6 +13,11 @@ const sizeOptions = validSizes.map(size => `<option value="${size}">${size}</opt
 exports.showProducts = async (req, res) => {
     try {
     const products = await Product.find().lean()
+
+    if (req.headers.accept.includes('application/json')) {
+      return res.json(products)
+    }
+
     const productsByCategoryArray = validCategories.map(category => {
         return products.filter(product => product.category === category)
     })
@@ -21,10 +26,10 @@ exports.showProducts = async (req, res) => {
         validCategories.forEach((category, index) => {
             const productsInCategory = productsByCategoryArray[index]
 
-            htmlByCategory += `<h2>${category}</h2><section id="${category}"><ul>`
+            htmlByCategory += `<section id="${category}"><h2>${category}</h2><ul>`
 
             productsInCategory.forEach(product => {
-            htmlByCategory += `<li>${getProductCard(req, product)}</li>`
+            htmlByCategory += `${getProductCard(req, product)}`
         })
         htmlByCategory += `</ul></section>`
         })
@@ -43,15 +48,20 @@ exports.showProductById = async (req, res) => {
     try {
         const productId = req.params.productId
         const product = await Product.findById(productId).lean()
+
         if (!product) {
             return res.status(404).send('Producto no encontrado')
         }
-        else {
-            let body = getNavBar(validCategories, req) + getDetails(req, product)
-            let html = baseHtml(body)
-
-            res.send(html)
+        
+        if (req.headers.accept.includes('application/json')) {
+            return res.json(product)
         }
+
+        let body = getNavBar(validCategories, req) + getDetails(req, product)
+        let html = baseHtml(body)
+
+        res.send(html)
+
     } catch (error) {
         console.error(error)
         res.status(500).send('Error al cargar el producto')
@@ -59,14 +69,15 @@ exports.showProductById = async (req, res) => {
 }
 
 exports.showNewProduct = (req, res) => {
-    const html = newProductForm(categoryOptions, sizeOptions);
-    res.send(html);
+    let htmlForm = newProductForm(categoryOptions, sizeOptions)
+    let html = baseHtml(htmlForm)
+    res.send(html)
 }
 
 exports.createProduct = async (req, res) => {
     try {
         const { name, description, category, size, price } = req.body
-        const image = req.file ? req.file.path : '';
+        const image = req.file ? req.file.path : ''
 
         const newProduct = new Product({
             name,
@@ -79,7 +90,11 @@ exports.createProduct = async (req, res) => {
 
     await newProduct.save()
 
-    res.send('<p>Producto creado con éxito.</p><p><a href="/dashboard/new">Crear otro producto</a></p><p><a href="/dashboard">← Volver al inicio</a></p>')
+    if (req.headers.accept.includes('application/json')) {
+        return res.status(201).json(newProduct)
+    }
+
+    res.send('<p>Producto creado con éxito.</p><a href="/dashboard/new">Crear otro producto</a><a href="/dashboard">Volver al inicio</a>')
     } catch (error) {
     console.error(error);
     res.status(500).send('Error al enviar el producto.')
@@ -90,10 +105,17 @@ exports.showEditProduct = async (req, res) => {
     try {
         const productId = req.params.productId
         const product = await Product.findById(productId).lean()
+
         if (!product) {
             return res.status(404).send('Producto no encontrado')
         }
-        const html = editProductForm(product, categoryOptions, sizeOptions)
+
+        if (req.headers.accept.includes('application/json')) {
+            return res.json(product)
+        }
+
+        let htmlEdit = editProductForm(product, categoryOptions, sizeOptions)
+        let html = baseHtml(htmlEdit)
         res.send(html)
     } catch (error) {
         console.error(error)
@@ -105,7 +127,7 @@ exports.updateProduct = async (req, res) => {
     try {
         const { name, description, image, category, size, price } = req.body
 
-        await Product.findByIdAndUpdate(req.params.productId, {
+        const updateProduct = await Product.findByIdAndUpdate(req.params.productId, {
             name,
             description,
             image,
@@ -113,6 +135,10 @@ exports.updateProduct = async (req, res) => {
             size,
             price
         })
+
+        if (req.headers.accept.includes('application/json')) {
+            return res.json(updatedProduct)
+        }
 
         res.redirect('/dashboard')
     } catch (error) {
@@ -123,7 +149,12 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
     try {
-        await Product.findByIdAndDelete(req.params.productId)
+        const deleteProduct = await Product.findByIdAndDelete(req.params.productId)
+
+        if (req.headers.accept.includes('application/json')) {
+            return res.json({ message: 'Producto eliminado correctamente', product: deletedProduct })
+        }
+        
         res.redirect('/dashboard')
     } catch (error) {
         console.error(error)

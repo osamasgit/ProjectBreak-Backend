@@ -3,7 +3,7 @@ function getNavbar (categories, req) {
     const basePath = isDashboard ? '/dashboard' : '/products'
 
     const categoryLink = categories.map(category => `<li><a href="#${category}">${category}</a></li>`).join('')
-    const newProductLink = isDashboard ? `<li><a href="${basePath}/new">Nuevo producto</a></li>` : `<li><a href="/login">Iniciar Sesion</a></li>`
+    const newProductLink = isDashboard ? `<li><a href="${basePath}/new">Nuevo producto</a></li><li><a href="/logout">Logout</a></li>` : `<li><a href="/login">Iniciar Sesion</a></li>`
 
     return `
         <nav>

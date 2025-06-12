@@ -1,5 +1,6 @@
 function editProductForm(product, categories, sizes) {
     return `
+        <div class="form">
         <h1>Editar producto</h1>
         <form action="/dashboard/${product._id}?_method=PUT" method="POST">
             <label>Nombre</label>
@@ -16,20 +17,18 @@ function editProductForm(product, categories, sizes) {
                 ${categories}
             </select>
 
-            <label>Talla</label>
-            <select name="size" required>
-                ${sizes}
-            </select>
-
             <label>Precio</label>
             <input type="number" name="price" value="${product.price}" step="0.01" required>
-            
+
             <button type="submit">Actualizar</button>
         </form>
         <form action="/dashboard/${product._id}?_method=DELETE" method="POST">
+        <div class="btns">
             <button type="submit">Eliminar</button>
+            <a href="/dashboard">Volver al inicio</a>
+        </div>
         </form>
-        <p><a href="/dashboard">← Volver al inicio</a></p>`
+        </div>`
 }
 
 module.exports = editProductForm
