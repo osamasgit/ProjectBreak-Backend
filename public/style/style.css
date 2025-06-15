@@ -88,7 +88,8 @@ nav:hover a{
 }
 
 nav a:hover{
-	color: f5f5f5;
+	color: #f5f5f5;
+	font-weight: 400;
 }
 
 a {
