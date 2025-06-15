@@ -22,6 +22,10 @@ app.use(session({
   saveUninitialized: false
 }));
 
+app.get('/', (req, res) => {
+  res.redirect('/products');
+});
+
 app.use('/', authRoutes)
 
 const authMiddleware = require('./middlewares/authMiddleware')
