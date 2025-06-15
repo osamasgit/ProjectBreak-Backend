@@ -7,6 +7,7 @@ function getNavbar (categories, req) {
 
     return `
         <nav>
+            <div class="menu-button">☰</div>
             <ul>
                 <li><a href="${basePath}">Inicio</a></li>
                 ${categoryLink}
